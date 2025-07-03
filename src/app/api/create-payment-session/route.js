@@ -1,9 +1,6 @@
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 import { NextResponse } from "next/server";
 
-// const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-// const stripeInstance = new stripe(stripeSecretKey);
-
 export async function POST(request) {
   if (request.method === "POST") {
     const req = await request.json();
@@ -19,7 +16,7 @@ export async function POST(request) {
               product_data: {
                 name: item.id,
               },
-              unit_amount: item.price * 100,
+              unit_amount: Math.round(item.price * 100),
             },
             quantity: item.quantity,
           };

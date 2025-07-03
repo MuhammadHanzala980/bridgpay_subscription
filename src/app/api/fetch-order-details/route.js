@@ -8,16 +8,14 @@ export async function POST(request) {
   try {
     const { orderId } = await request.json();
 
-    // Order ID validation
-    if (!orderId || isNaN(Number(orderId))) {
+     if (!orderId || isNaN(Number(orderId))) {
       return NextResponse.json(
-        { error: "Valid numeric Order ID is required" },
+        { error: "Valid Order ID is required" },
         { status: 400 }
       );
     }
 
-    // Env variables validation
-    const WOOCOMMERCE_URL = process.env.SITE_URL;
+     const WOOCOMMERCE_URL = process.env.SITE_URL;
     const CONSUMER_KEY = process.env.CONSUMER_KEY;
     const CONSUMER_SECRET = process.env.CONSUMER_SECRET;
 
@@ -28,8 +26,7 @@ export async function POST(request) {
       );
     }
 
-    // Axios instance with Basic Auth
-    const api = axios.create({
+     const api = axios.create({
       baseURL: `${WOOCOMMERCE_URL}/wp-json/wc/v3`,
       auth: {
         username: CONSUMER_KEY,
@@ -40,8 +37,7 @@ export async function POST(request) {
       },
     });
 
-    // Order fetch
-    let orderData;
+     let orderData;
     try {
       const orderResponse = await api.get(`/orders/${orderId}`);
       orderData = orderResponse.data;
@@ -49,22 +45,21 @@ export async function POST(request) {
       console.error("Order fetch error:", err.response?.data || err.message);
       return NextResponse.json(
         {
-          error: "Failed to fetch order",
+          error: "Failed fetch order",
           details: err.response?.data || err.message,
         },
         { status: err.response?.status || 500 }
       );
     }
 
-    // Subscriptions fetch
-    let subscriptions
+     let subscriptions
     try {
       const subsResponse = await api.get(`/subscriptions`, {
         params: { parent: orderId },
       });
        subscriptions = subsResponse.data.length > 0 ? subsResponse.data[0] : false;
     } catch (err) {
-      console.error("Subscriptions fetch error:", err.response?.data || err.message);
+      console.error("Subscriptins fetch error:", err.response?.data || err.message);
       return NextResponse.json(
         {
           error: "Failed to fetch subscriptions",
@@ -74,8 +69,7 @@ export async function POST(request) {
       );
     }
 
-    // Response
-    return NextResponse.json({
+     return NextResponse.json({
       orderData,
       subscription: subscriptions,
 

@@ -1,14 +1,11 @@
-// src/app/api/cancel-subscription/route.js
-
+ 
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import axios from "axios";
 
-// Stripe setup
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-// WooCommerce REST credentials
-const WC_BASE = process.env.SITE_URL + "/wp-json/wc/v3";
+ const WC_BASE = process.env.SITE_URL + "/wp-json/wc/v3";
 const WC_AUTH = {
   username: process.env.CONSUMER_KEY,
   password: process.env.CONSUMER_SECRET,
@@ -37,20 +34,17 @@ export async function POST(request) {
       return NextResponse.json({ error: "Failed to fetch WooCommerce subscription" }, { status: 500 });
     }
 
-    // 2) Cancel on Stripe (if stripeSubId found)
-    if (stripeSubId) {
+     if (stripeSubId) {
       try {
         console.log("stripeSubId:", stripeSubId )
         await stripe.subscriptions.cancel(stripeSubId);
         console.log(`✅ Stripe subscription ${stripeSubId} cancelled`);
       } catch (err) {
         console.error(`Stripe cancel error:`, err.message);
-        // continue to cancel on WooCommerce even if stripe fails
-      }
+       }
     }
 
-    // 3) Cancel on WooCommerce
-    try {
+     try {
       await axios.put(
         `${WC_BASE}/subscriptions/${wcSubscriptionId}`,
         { status: "cancelled" },

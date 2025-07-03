@@ -31,18 +31,18 @@ const CancelSubscription = (props) => {
   const orderId = searchParams?.orderid;
 
   const [message, setMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // Track loading state
+  const [isLoading, setIsLoading] = useState(false); 
 
   useEffect(() => {
     if (!orderId) return;
 
     const handleCancelSubscription = async () => {
-      setIsLoading(true); // Set loading state to true
+      setIsLoading(true); 
 
       try {
         console.log(orderId, "orderId")
         const response = await axios.post('/api/cancel-subscription', {
-          wcSubscriptionId: orderId, // Destructure orderId directly
+          wcSubscriptionId: orderId, 
         });
         console.log(response, "response")
         if (response.data.subscription) {
@@ -53,14 +53,14 @@ const CancelSubscription = (props) => {
         }
       } catch (error) {
         console.log('Error canceling subscription:', error.response);
-        setMessage(`Error: ${error.response?.data?.message || error.message}`); // Handle both response and generic errors
+        setMessage(`Error: ${error.response?.data?.message || error.message}`); 
       } finally {
-        setIsLoading(false); // Reset loading state regardless of success or failure
+        setIsLoading(false); 
       }
     };
 
     handleCancelSubscription();
-  }, [orderId]); // Only re-run on orderId change
+  }, [orderId]); 
 
   return (
     <div style={{

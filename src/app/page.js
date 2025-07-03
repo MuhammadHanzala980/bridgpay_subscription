@@ -82,7 +82,7 @@ const PaymentPage = () => {
 
   const fetchOrder = async (orderId) => {
     try {
-      const { orderData, subscription, debug, message } = (await axios.post("/api/fetch-order-details", { orderId })).data; // await fetchOrderData(orderId)
+      const { orderData, subscription, debug, message } = (await axios.post("/api/fetch-order-details", { orderId })).data; 
       console.log("Order Data:", orderData, subscription)
       await handleRedirect(orderData, orderId, subscription);
     } catch {
