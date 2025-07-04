@@ -1,103 +1,87 @@
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-import { NextResponse } from "next/server";
+import Stripe from 'stripe';
+import { NextResponse } from 'next/server';
 
-
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export async function POST(request) {
-  if (request.method === "POST") {
-    const req = await request.json();
-    const { line_items, currency, billing, orderId, subscription_id } = req;
-    console.log(orderId, "orderId")
-    try {
+  try {
+    const { orderData, subscription } = await request.json();
+    const origin = request.headers.get('origin') || process.env.SUCCESS_URL;
+    const toCents = (amount) => Math.round(parseFloat(amount || '0') * 100);
+    const currency = (orderData.currency || 'USD').toLowerCase();
 
-      const transformedArray = await Promise.all(
-        line_items.map(async (item) => {
-          if (
-            item?.meta_data[0]?.display_value?.includes("1_day") ||
-            item?.meta_data[0]?.display_value?.includes("1_week") ||
-            item?.meta_data[0]?.display_value?.includes("1_month") ||
-            item?.meta_data[0]?.display_value?.includes("1_year")
 
-          ) {
 
-            let interval = "day";
-            if (item?.meta_data[0]?.display_value?.includes("1_day")) {
-              interval = "day";
-            } else if (item?.meta_data[0]?.display_value?.includes("1_week")) {
-              interval = "week";
-            } else if (item?.meta_data[0]?.display_value?.includes("1_month")) {
-              interval = "month";
-            } else if (item?.meta_data[0]?.display_value?.includes("1_year")) {
-              interval = "year";
-            }
-            try {
 
-              const label = `${interval}`
-              console.log(label)
-              const price = await stripe.prices.create({
-                // product: process.env.PRODUCT_ID,
-                unit_amount: Math.round(item.price * 100),
-                currency: currency,
-                recurring: { interval },
-                product_data: {
-                  name: item.id,
-                  active: true,
-                  unit_label: label,
-                }
+    const orderTotal = toCents(orderData.total);
+    const subscriptionTotal = Array.isArray(subscription) && subscription.length
+      ? toCents(subscription[0].total)
+      : 0;
 
-              });
-              return {
-                price: price?.id,
-                quantity: 1,
-              };
-            } catch (error) {
-              console.error("Error creating price:", error);
-              throw error;
-            }
-          } else {
-            return {
-              price_data: {
-                currency: currency,
-                product_data: {
-                  name: item.id,
-                },
-                unit_amount: Math.round(item.price * 100),
-              },
-              quantity: item.quantity,
-            };
-          }
-        })
-      );
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
-        line_items: transformedArray,
-        customer_email: billing?.email,
-        mode: "subscription",
-        metadata: {
-          order_id: orderId,
-          subscription_id: subscription_id
+    const initialCharge = Math.max(orderTotal - subscriptionTotal, 0);
+    const line_items = [];
+
+
+    if (initialCharge > 0) {
+      line_items.push({
+        price_data: {
+          currency,
+          unit_amount: initialCharge,
+          product_data: { name: 'Initial Payment' },
         },
-        subscription_data: { metadata: { subscription_id: subscription_id } },
-
-        success_url: `${process.env.SUCCESS_URL}/payment-status/?success=true`,
-        cancel_url: `${process.env.SUCCESS_URL}/payment-status/?success=false`,
+        quantity: 1,
       });
-
-      const subscription = await stripe.checkout.sessions.retrieve(session.id, {
-        expand: ['subscription'],
-      });
-
-      return NextResponse.json({
-        session: session,
-        sessionId: session.id,
-        checkoutSession: session,
-        custom: subscription.subscription
-      });
-    } catch (error) {
-      return NextResponse.json({ error: error.message });
     }
-  } else {
-    return NextResponse.json({ message: "Method not allowed" });
+
+    if (subscriptionTotal > 0) {
+      const firstSubItem = subscription[0].line_items.find(item =>
+        item.meta_data.some(md => md.key === '_wcsatt_scheme' && md.value !== '0')
+      );
+      const schemeMeta = firstSubItem.meta_data.find(md => md.key === '_wcsatt_scheme');
+      const [count, interval] = schemeMeta.value.split('_'); // e.g., ['1','month']
+
+      line_items.push({
+        price_data: {
+          currency,
+          unit_amount: subscriptionTotal,
+          recurring: { interval, interval_count: parseInt(count, 10) },
+          product_data: { name: 'Subscription Payment' },
+        },
+        quantity: 1,
+      });
+    }
+
+    if (!line_items.length) {
+      return NextResponse.json(
+        { error: 'No valid items to process' },
+        { status: 400 }
+      );
+    }
+
+
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      mode: 'subscription',
+      metadata: {
+        order_id: orderData.id,
+        subscription_id: subscription[0].id
+      },
+      subscription_data: { metadata: { subscription_id: subscription[0].id } },
+      line_items,
+      success_url: `${origin}/payment-status`,
+      cancel_url: `${origin}/cancel`,
+      metadata: { order_id: String(orderData.id) },
+    });
+    console.log(session.url)
+    return NextResponse.json({ sessionId: session.id });
+
+
+  } catch (err) {
+    console.error('Error creating checkout session:', err);
+    return NextResponse.json(
+      { error: 'Checkout session creation failed', details: err.message },
+      { status: 500 }
+    );
   }
 }
-

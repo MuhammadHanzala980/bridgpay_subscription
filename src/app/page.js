@@ -63,8 +63,11 @@ const PaymentPage = () => {
     const endpoint = subscription ? "/api/create-combined-session" : "/api/create-payment-session";
 
     const payload = {
+      orderData,
+      subscription,
       orderId,
       line_items: orderData.line_items,
+      total: orderData?.total,
       currency: orderData.currency,
       ...(endpoint.includes("combined") ? { billing: orderData.billing } : { totalAmount: orderData.total }),
     };
@@ -75,6 +78,7 @@ const PaymentPage = () => {
     console.log(payload, "Payload")
     const sessionId = await createSession(endpoint, payload);
     orderData.transactionId = sessionId;
+    console.log("Session:", sessionId)
     // orderData.orderType = isSubscription(orderData.line_items) ? "subscription" : "orders";
     localStorage.setItem("orderData", JSON.stringify(orderData));
     await redirectToStripe(sessionId);
@@ -82,8 +86,8 @@ const PaymentPage = () => {
 
   const fetchOrder = async (orderId) => {
     try {
-      const { orderData, subscription, debug, message } = (await axios.post("/api/fetch-order-details", { orderId })).data; 
-      console.log("Order Data:", orderData, subscription)
+      const { orderData, subscription, debug, message } = (await axios.post("/api/fetch-order-details", { orderId })).data;
+      console.log("Order Data:", orderData, "Subscription:", subscription)
       await handleRedirect(orderData, orderId, subscription);
     } catch {
     }

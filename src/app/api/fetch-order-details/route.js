@@ -57,7 +57,7 @@ export async function POST(request) {
       const subsResponse = await api.get(`/subscriptions`, {
         params: { parent: orderId },
       });
-       subscriptions = subsResponse.data.length > 0 ? subsResponse.data[0] : false;
+       subscriptions = subsResponse.data.length > 0 ? subsResponse.data : false;
     } catch (err) {
       console.error("Subscriptins fetch error:", err.response?.data || err.message);
       return NextResponse.json(
