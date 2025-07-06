@@ -70,7 +70,7 @@ export async function POST(request) {
       subscription_data: { metadata: { subscription_id: subscription[0].id } },
       line_items,
       success_url: `${origin}/payment-status`,
-      cancel_url: `${origin}/cancel`,
+      cancel_url: `${origin}/payment-status`,
       metadata: { order_id: String(orderData.id) },
     });
     console.log(session.url)

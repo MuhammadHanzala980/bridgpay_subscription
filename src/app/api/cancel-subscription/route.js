@@ -26,11 +26,12 @@ export async function POST(request) {
         { auth: WC_AUTH }
       );
       const meta = resp.data.meta_data || [];
+      console.log(meta, "stripe_subscription_meta")
       const metaEntry = meta.find(m => m.key === 'stripe_subscription_id');
       stripeSubId = metaEntry?.value;
       console.log(`🔍 Fetched Stripe Sub ID: ${stripeSubId}`);
     } catch (err) {
-      console.error("Error fetching WC subscription:", err.response?.data || err.message);
+      console.log("Error fetching Stripe subscription Id:", err.response?.data || err.message);
       return NextResponse.json({ error: "Failed to fetch WooCommerce subscription" }, { status: 500 });
     }
 

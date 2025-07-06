@@ -35,8 +35,7 @@ export async function POST(request) {
   };
 
   const updateSubscription = async (wcSubId, status, stripeSubId) => {
-    // console.log("Updating Sub status...", wcSubId, status)
-    if (!wcSubId) return;
+     if (!wcSubId) return;
     const body = { status };
     if (stripeSubId) {
       body.meta_data = [
@@ -48,8 +47,7 @@ export async function POST(request) {
       body,
       { auth: WC_AUTH }
     );
-    console.log(`Subscription ${wcSubId} set to ${status}`);
-    if (stripeSubId) console.log(`Stripe Sub ID ${stripeSubId} Saved into subscription meta `);
+     if (stripeSubId) console.log(`Stripe Sub ID ${stripeSubId} Saved into subscription meta `);
   };
 
   switch (event.type) {
@@ -58,8 +56,7 @@ export async function POST(request) {
       const orderId = session.metadata?.order_id || session.client_reference_id;
       const subId = session.metadata.subscription_id;
       const stripeSubId = session?.subscription
-      console.log(session.metadata, "event.data.object")
-      await updateOrder(orderId, "processing");
+       await updateOrder(orderId, "processing");
       if (stripeSubId) {
         await updateSubscription(subId, "active", stripeSubId);
       }
@@ -69,33 +66,37 @@ export async function POST(request) {
     case "payment_intent.succeeded": {
       const pi = event.data.object;
       const orderId = pi.metadata?.order_id;
-      console.log()
-      await updateOrder(orderId, "completed");
+       await updateOrder(orderId, "completed");
       break;
     }
 
     case "invoice.payment_succeeded": {
       const inv = event.data.object;
       const subId = inv.metadata.subscription_id;
-      console.log(subId, inv.metadata, "invoice.payment_succeeded")
-      await updateSubscription(subId, "active");
+       await updateSubscription(subId, "active");
       break;
     }
 
     case "invoice.payment_failed": {
       const inv = event.data.object;
       const subId = inv.metadata.subscription_id;
-      console.log(subId, "invoice.payment_failed")
-      await updateSubscription(subId, "on-hold");
+       await updateSubscription(subId, "on-hold");
       break;
     }
 
     case "customer.subscription.updated": {
+      console.log("<<<<<<<<<<<<")
+      console.log("Calling customer.subscription.updated event ")
       const sub = event.data.object;
       const subId = sub.metadata.subscription_id;
-      console.log(subId, "customer.subscription.updated")
+      const stripeSubId = sub.id
 
-      await updateSubscription(subId, sub.status);
+      if (subId) {
+        console.log(subId, sub.status, stripeSubId, "Updating subscription...")
+        await updateSubscription(subId, sub.status, stripeSubId);
+      }
+      console.log("customer.subscription.updated End!")
+      console.log(">>>>>>>>>>>>")
       break;
     }
 
