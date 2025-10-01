@@ -8,14 +8,14 @@ export async function POST(request) {
   try {
     const { orderId } = await request.json();
 
-     if (!orderId || isNaN(Number(orderId))) {
+    if (!orderId || isNaN(Number(orderId))) {
       return NextResponse.json(
         { error: "Valid Order ID is required" },
         { status: 400 }
       );
     }
 
-     const WOOCOMMERCE_URL = process.env.SITE_URL;
+    const WOOCOMMERCE_URL = process.env.SITE_URL;
     const CONSUMER_KEY = process.env.CONSUMER_KEY;
     const CONSUMER_SECRET = process.env.CONSUMER_SECRET;
 
@@ -26,20 +26,26 @@ export async function POST(request) {
       );
     }
 
-     const api = axios.create({
+ 
+
+    const api = axios.create({
       baseURL: `${WOOCOMMERCE_URL}/wp-json/wc/v3`,
-      auth: {
-        username: CONSUMER_KEY,
-        password: CONSUMER_SECRET,
-      },
+      timeout: 10000,
       headers: {
         "Content-Type": "application/json",
       },
     });
 
-     let orderData;
+    let orderData;
+
     try {
-      const orderResponse = await api.get(`/orders/${orderId}`);
+      const orderResponse = await api.get(`/orders/${orderId}`, {
+        params: {
+          consumer_key: CONSUMER_KEY,
+          consumer_secret: CONSUMER_SECRET
+        }
+
+      });
       orderData = orderResponse.data;
     } catch (err) {
       console.error("Order fetch error:", err.response?.data || err.message);
@@ -52,12 +58,17 @@ export async function POST(request) {
       );
     }
 
-     let subscriptions
+    let subscriptions
     try {
       const subsResponse = await api.get(`/subscriptions`, {
-        params: { parent: orderId },
+        params: {
+          parent: orderId,
+          consumer_key: CONSUMER_KEY,
+          consumer_secret: CONSUMER_SECRET
+        },
       });
-       subscriptions = subsResponse.data.length > 0 ? subsResponse.data : false;
+      // console.log(subsResponse, ">>>>>>>>>>>>>>>><<<<<<<<<<<")
+      subscriptions = subsResponse.data.length > 0 ? subsResponse.data : false;
     } catch (err) {
       console.error("Subscriptins fetch error:", err.response?.data || err.message);
       return NextResponse.json(
@@ -69,7 +80,7 @@ export async function POST(request) {
       );
     }
 
-     return NextResponse.json({
+    return NextResponse.json({
       orderData,
       subscription: subscriptions,
 

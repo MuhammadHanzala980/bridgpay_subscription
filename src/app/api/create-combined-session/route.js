@@ -74,7 +74,7 @@ export async function POST(request) {
       metadata: { order_id: String(orderData.id) },
     });
     console.log(session.url)
-    return NextResponse.json({ sessionId: session.id });
+    return NextResponse.json(session);
 
 
   } catch (err) {

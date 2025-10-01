@@ -7,10 +7,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const endpointSecret = process.env.STRIPE_HOOK_SIGNIN_SECRET;
 
 const WC_BASE = process.env.SITE_URL + "/wp-json/wc/v3";
-const WC_AUTH = {
-  username: process.env.CONSUMER_KEY,
-  password: process.env.CONSUMER_SECRET,
-};
+
 
 export async function POST(request) {
   const payload = await request.text();
@@ -29,13 +26,18 @@ export async function POST(request) {
     await axios.put(
       `${WC_BASE}/orders/${orderId}`,
       { status },
-      { auth: WC_AUTH }
+      {
+        params: {
+          consumer_key: process.env.CONSUMER_KEY,
+          consumer_secret: process.env.CONSUMER_SECRET
+        }
+      }
     );
     console.log(`Order ${orderId} updated to  ${status} `);
   };
 
   const updateSubscription = async (wcSubId, status, stripeSubId) => {
-     if (!wcSubId) return;
+    if (!wcSubId) return;
     const body = { status };
     if (stripeSubId) {
       body.meta_data = [
@@ -45,9 +47,15 @@ export async function POST(request) {
     await axios.put(
       `${WC_BASE}/subscriptions/${wcSubId}`,
       body,
-      { auth: WC_AUTH }
+      {
+        params: {
+          consumer_key: process.env.CONSUMER_KEY,
+          consumer_secret: process.env.CONSUMER_SECRET
+        }
+      }
+
     );
-     if (stripeSubId) console.log(`Stripe Sub ID ${stripeSubId} Saved into subscription meta `);
+    if (stripeSubId) console.log(`Stripe Sub ID ${stripeSubId} Saved into subscription meta `);
   };
 
   switch (event.type) {
@@ -56,7 +64,7 @@ export async function POST(request) {
       const orderId = session.metadata?.order_id || session.client_reference_id;
       const subId = session.metadata.subscription_id;
       const stripeSubId = session?.subscription
-       await updateOrder(orderId, "processing");
+      await updateOrder(orderId, "processing");
       if (stripeSubId) {
         await updateSubscription(subId, "active", stripeSubId);
       }
@@ -66,21 +74,21 @@ export async function POST(request) {
     case "payment_intent.succeeded": {
       const pi = event.data.object;
       const orderId = pi.metadata?.order_id;
-       await updateOrder(orderId, "completed");
+      await updateOrder(orderId, "completed");
       break;
     }
 
     case "invoice.payment_succeeded": {
       const inv = event.data.object;
       const subId = inv.metadata.subscription_id;
-       await updateSubscription(subId, "active");
+      await updateSubscription(subId, "active");
       break;
     }
 
     case "invoice.payment_failed": {
       const inv = event.data.object;
       const subId = inv.metadata.subscription_id;
-       await updateSubscription(subId, "on-hold");
+      await updateSubscription(subId, "on-hold");
       break;
     }
 

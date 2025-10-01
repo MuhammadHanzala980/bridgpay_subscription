@@ -34,10 +34,13 @@ export async function POST(request) {
           order_id: orderId,
         },
       });
-      return NextResponse.json({
-        sessionId: session.id,
-        checkoutSession: session,
-      });
+      // return NextResponse.json({
+      //   sessionId: session.id,
+      //   checkoutSession: session,
+      //   url: session.url
+      // });
+      return NextResponse.json(session);
+
     } catch (error) {
       console.log(error);
       return NextResponse.json({ error: error.message });

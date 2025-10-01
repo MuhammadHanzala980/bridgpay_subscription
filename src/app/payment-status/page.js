@@ -1,7 +1,3 @@
-
-
-
-
 "use client";
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
@@ -32,40 +28,7 @@ const PaymentSuccessPage = () => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("success") === "true") {
       setPaymentStatus("Payment Successful!");
-
-      const orderData = JSON.parse(localStorage.getItem("orderData") || "{}");
-      const { id: orderId, transactionId, amount, currency } = orderData;
-
-      // if (orderId && transactionId) {
-      //   axios
-      //     .put("/api/update-order-status", { orderId, transactionId })
-      //     .then(async (res) => {
-      //       window.gtag &&
-      //         window.gtag("get", process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID, "client_id",
-      //           (clientId) => {
-      //             console.log("GA4 client_id:", clientId);
-      //            }
-      //         );
-
-      //        window.gtag &&
-      //         window.gtag("event", "purchase", {
-      //           transaction_id: transactionId,
-      //           value: amount,         // e.g. 49.99
-      //           currency: currency,    // e.g. "USD"
-      //           });
-
-      //       console.log("GA4 purchase event sent");
-      //     })
-      //     .catch((err) => {
-      //       console.error("Error updating order status:", err);
-      //     });
-      // } 
-      //   else {
-      //     console.warn("No valid orderData in localStorage");
-      //   }
-      // } else if (params.get("success") === "false") {
-      //   setPaymentStatus("Payment Canceled.");
-      }
+    }
   }, []);
 
   return (

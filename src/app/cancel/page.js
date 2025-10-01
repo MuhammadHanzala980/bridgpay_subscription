@@ -85,7 +85,7 @@ const CancelSubscription = (props) => {
         <br />
 
         <p style={{ color: "#222", fontWeight: "600", fontSize: "16px" }}>
-          We're sorry to see you go.
+          We&apos;re sorry to see you go.
         </p>
         <br />
 

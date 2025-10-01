@@ -1,17 +1,17 @@
- 
+
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import axios from "axios";
 
- const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
- const WC_BASE = process.env.SITE_URL + "/wp-json/wc/v3";
+const WC_BASE = process.env.SITE_URL + "/wp-json/wc/v3";
 const WC_AUTH = {
   username: process.env.CONSUMER_KEY,
   password: process.env.CONSUMER_SECRET,
 };
 
- 
+
 export async function POST(request) {
   try {
     const { wcSubscriptionId } = await request.json();
@@ -19,11 +19,16 @@ export async function POST(request) {
       return NextResponse.json({ error: "wcSubscriptionId is required" }, { status: 400 });
     }
 
-     let stripeSubId;
+    let stripeSubId;
     try {
       const resp = await axios.get(
         `${WC_BASE}/subscriptions/${wcSubscriptionId}`,
-        { auth: WC_AUTH }
+        {
+          params: {
+            consumer_key: CONSUMER_KEY,
+            consumer_secret: CONSUMER_SECRET
+          }
+        }
       );
       const meta = resp.data.meta_data || [];
       console.log(meta, "stripe_subscription_meta")
@@ -35,22 +40,26 @@ export async function POST(request) {
       return NextResponse.json({ error: "Failed to fetch WooCommerce subscription" }, { status: 500 });
     }
 
-     if (stripeSubId) {
+    if (stripeSubId) {
       try {
-        console.log("stripeSubId:", stripeSubId )
+        console.log("stripeSubId:", stripeSubId)
         await stripe.subscriptions.cancel(stripeSubId);
         console.log(`✅ Stripe subscription ${stripeSubId} cancelled`);
       } catch (err) {
         console.error(`Stripe cancel error:`, err.message);
-       }
+      }
     }
 
-     try {
+    try {
       await axios.put(
         `${WC_BASE}/subscriptions/${wcSubscriptionId}`,
         { status: "cancelled" },
-        { auth: WC_AUTH }
-      );
+        {
+          params: {
+            consumer_key: CONSUMER_KEY,
+            consumer_secret: CONSUMER_SECRET
+          }
+        });
       console.log(`✅ WooCommerce subscription ${wcSubscriptionId} cancelled`);
     } catch (err) {
       console.error(`WooCommerce cancel error:`, err.response?.data || err.message);

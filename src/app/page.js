@@ -5,7 +5,6 @@ import { loadStripe } from "@stripe/stripe-js";
 import lottie from "lottie-web";
 import redirectCheckout from "./lottie/redirectCheckout.json";
 import { useRouter } from "next/navigation";
-import { fetchOrderData } from "./utils/fetchOrderData";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
@@ -40,23 +39,18 @@ const PaymentPage = () => {
     } else {
       router.push(process.env.NEXT_PUBLIC_HOMEPAGE);
     }
-  }, [router]);
+  }, []);
 
-  // const isSubscription = (items) => {
-  //   const keys = ["1_day", "1_week", "1_month", "1_year"];
-  //   return items.some(item =>
-  //     item.meta_data.some(
-  //       meta => meta.key === "_wcsatt_scheme" && keys.includes(meta.value)
-  //     )
-  //   );
-  // };
 
-  const createSession = (endpoint, data) =>
-    axios.post(endpoint, data).then(res => res.data.sessionId);
 
-  const redirectToStripe = async (sessionId) => {
-    const stripe = await stripePromise;
-    await stripe.redirectToCheckout({ sessionId });
+  const createSession = (endpoint, data) => axios.post(endpoint, data).then(res => res.data);
+
+
+  const redirectToStripe = async (url) => {
+    console.log(url)
+    window.location.href = url
+    // const stripe = await stripePromise;
+    // await stripe.redirectToCheckout({ sessionId });
   };
 
   const handleRedirect = async (orderData, orderId, subscription) => {
@@ -75,19 +69,17 @@ const PaymentPage = () => {
       payload.subscription_id = subscription.id
     }
 
-    console.log(payload, "Payload")
-    const sessionId = await createSession(endpoint, payload);
-    orderData.transactionId = sessionId;
-    console.log("Session:", sessionId)
-    // orderData.orderType = isSubscription(orderData.line_items) ? "subscription" : "orders";
-    localStorage.setItem("orderData", JSON.stringify(orderData));
-    await redirectToStripe(sessionId);
+    // console.log(payload, "Payload")
+    const session = await createSession(endpoint, payload);
+    console.log(session)
+    orderData.transactionId = session;
+    await redirectToStripe(session.url);
   };
 
   const fetchOrder = async (orderId) => {
     try {
       const { orderData, subscription, debug, message } = (await axios.post("/api/fetch-order-details", { orderId })).data;
-      console.log("Order Data:", orderData, "Subscription:", subscription)
+      // console.log("Order Data:", orderData, "Subscription:", subscription)
       await handleRedirect(orderData, orderId, subscription);
     } catch {
     }
