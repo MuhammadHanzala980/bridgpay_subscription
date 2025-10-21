@@ -43,12 +43,18 @@ const PaymentPage = () => {
 
 
 
-  const createSession = (endpoint, data) => axios.post(endpoint, data).then(res => res.data);
+  // const createSession = (endpoint, data) => axios.post(endpoint, data).then(res => res.data);
+
+  const createSession = async (endpoint, data)=>{
+      const session = await axios.post(endpoint, data)
+      console.log(session)
+      return session.data
+  }
 
 
   const redirectToStripe = async (url) => {
     console.log(url)
-    window.location.href = url
+    // window.location.href = url
     // const stripe = await stripePromise;
     // await stripe.redirectToCheckout({ sessionId });
   };
@@ -79,7 +85,7 @@ const PaymentPage = () => {
   const fetchOrder = async (orderId) => {
     try {
       const { orderData, subscription, debug, message } = (await axios.post("/api/fetch-order-details", { orderId })).data;
-      // console.log("Order Data:", orderData, "Subscription:", subscription)
+      console.log("Order Data:", orderData, "Subscription:", subscription)
       await handleRedirect(orderData, orderId, subscription);
     } catch {
     }
