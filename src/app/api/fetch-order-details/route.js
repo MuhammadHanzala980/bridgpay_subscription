@@ -67,7 +67,7 @@ export async function POST(request) {
           parent: orderId
         },
       });
-      console.log(subsResponse, ">>>>>>>>>>>>>>>><<<<<<<<<<<")
+      // console.log(subsResponse, ">>>>>>>>>>>>>>>><<<<<<<<<<<")
       subscriptions = subsResponse.data.length > 0 ? subsResponse.data : false;
     } catch (err) {
       console.error("Subscriptins fetch error:", err.response?.data || err.message);

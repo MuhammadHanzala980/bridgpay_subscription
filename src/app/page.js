@@ -54,7 +54,7 @@ const PaymentPage = () => {
 
   const redirectToStripe = async (url) => {
     console.log(url)
-    // window.location.href = url
+    window.location.href = url
     // const stripe = await stripePromise;
     // await stripe.redirectToCheckout({ sessionId });
   };
