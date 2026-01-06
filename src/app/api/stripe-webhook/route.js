@@ -225,8 +225,7 @@ export async function POST(request) {
     const sig = request.headers.get("stripe-signature");
 
     let event   //= JSON.parse(payload);;
-    console.log(event.type, "Payload from Stripe Webhook")
-    try {
+     try {
         event = stripe.webhooks.constructEvent(payload, sig, endpointSecret);
     } catch (err) {
         console.error("Signature verification failed:", err.message);
