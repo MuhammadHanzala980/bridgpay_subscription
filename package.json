@@ -10,9 +10,11 @@
   },
   "dependencies": {
     "@google-analytics/data": "^5.2.0",
+    "@heroicons/react": "^2.2.0",
     "@stripe/stripe-js": "^8.0.0",
     "axios": "^1.12.2",
     "lottie-web": "^5.13.0",
+    "mongodb": "^7.0.0",
     "next": "^16.1.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",
