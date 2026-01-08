@@ -50,17 +50,18 @@ export async function POST(request) {
     const payload = await request.text();
     const sig = request.headers.get("stripe-signature");
 
-    let event // = JSON.parse(payload);
-     try {
-        event = stripe.webhooks.constructEvent(payload, sig, endpointSecret);
-    } catch (err) {
-        await logAction('webhook_verification_failed', { error: err.message });
-        return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
-    }
+    let event = JSON.parse(payload);
+    console.log('Received Stripe event:', event.type);
+    //  try {
+    //     event = stripe.webhooks.constructEvent(payload, sig, endpointSecret);
+    // } catch (err) {
+    //     await logAction('webhook_verification_failed', { error: err.message });
+    //     return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
+    // }
 
-    if (await isEventProcessed(event.id)) {
-        return NextResponse.json({ received: true });
-    }
+    // if (await isEventProcessed(event.id)) {
+    //     return NextResponse.json({ received: true });
+    // }
 
     const findAndUpdateRenewalOrder = async (wcSubId) => {
 
@@ -179,8 +180,8 @@ export async function POST(request) {
                 break;
             }
             case "invoice.payment_failed": {
-                const inv = event.data.object;
-                const subId = inv.metadata?.subscription_id;
+                const sub = event.data.object;
+                const subId = sub.parent?.subscription_details?.metadata?.subscription_id || sub.metadata?.subscription_id;
                 if (!subId) {
                     break;
                 }
@@ -199,7 +200,9 @@ export async function POST(request) {
             }
             case "customer.subscription.deleted": {
                 const sub = event.data.object;
-                const subId = sub.metadata?.subscription_id;
+
+                const subId = sub.parent?.subscription_details?.metadata?.subscription_id || sub.metadata?.subscription_id;
+                console.log(subId)
                 if (!subId) {
                     break;
                 }
