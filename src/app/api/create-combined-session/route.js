@@ -149,16 +149,16 @@ export async function POST(request) {
       });
     }
 
-     if (initialCharge > 0) {
-      line_items.unshift({
-        price_data: {
-          currency,
-          unit_amount: initialCharge,
-          product_data: { name: 'Initial Payment' },
-        },
-        quantity: 1,
-      });
-    }
+    //  if (initialCharge > 0) {
+    //   line_items.unshift({
+    //     price_data: {
+    //       currency,
+    //       unit_amount: initialCharge,
+    //       product_data: { name: 'Initial Payment' },
+    //     },
+    //     quantity: 1,
+    //   });
+    // }
 
     if (!line_items.length) {
       return NextResponse.json({ error: 'No valid items' }, { status: 400 });

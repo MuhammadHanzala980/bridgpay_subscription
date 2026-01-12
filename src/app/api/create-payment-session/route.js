@@ -4,29 +4,21 @@ import { NextResponse } from "next/server";
 export async function POST(request) {
   if (request.method === "POST") {
     const req = await request.json();
-    const { orderId, currency, line_items } = req;
+    const { orderId, currency, line_items, total } = req;
     try {
 
-      const transformedArray = await Promise.all(
-        line_items.map(async (item) => {
-
-          return {
-            price_data: {
-              currency: currency,
-              product_data: {
-                name: item.id,
-              },
-              unit_amount: Math.round(item.price * 100),
-            },
-            quantity: item.quantity,
-          };
-        })
-      );
-
-      console.log("Creating Session...");
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
-        line_items: transformedArray,
+        line_items: [{
+          price_data: {
+            currency: currency,
+            product_data: {
+              name: 'Order Payment',
+            },
+            unit_amount: Math.round(total * 100),
+          },
+          quantity: 1,
+        }],
         mode: "payment",
         success_url: `${process.env.SUCCESS_URL}/payment-status/?success=true`,
         cancel_url: `${process.env.SUCCESS_URL}/payment-status/?success=false`,
@@ -34,11 +26,7 @@ export async function POST(request) {
           order_id: orderId,
         },
       });
-      // return NextResponse.json({
-      //   sessionId: session.id,
-      //   checkoutSession: session,
-      //   url: session.url
-      // });
+
       return NextResponse.json(session);
 
     } catch (error) {
