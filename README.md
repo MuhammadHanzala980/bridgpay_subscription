@@ -13,13 +13,7 @@ Bridg Pay is a Next.js-based payment gateway application that integrates WooComm
 - **Subscription Cancellation**: Allows users to cancel subscriptions with automatic sync
 - **Activity Logging**: Comprehensive logging system stored in MongoDB for monitoring and debugging
 
-### User Experience
-- **Responsive Design**: Built with Tailwind CSS for modern, responsive UI
-- **Lottie Animations**: Engaging animations for payment processing, success, and cancellation states
-- **Real-time Feedback**: Immediate visual feedback during payment processing
-- **Mobile-Friendly**: Optimized for all device types
-
-### Technical Features
+ ### Technical Features
 - **API Routes**: RESTful API endpoints for all payment operations
 - **Database Integration**: MongoDB for logging and event tracking
 - **Error Handling**: Robust error handling and validation
