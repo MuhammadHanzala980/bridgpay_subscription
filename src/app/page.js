@@ -45,10 +45,10 @@ const PaymentPage = () => {
 
   // const createSession = (endpoint, data) => axios.post(endpoint, data).then(res => res.data);
 
-  const createSession = async (endpoint, data)=>{
-      const session = await axios.post(endpoint, data)
-      console.log(session)
-      return session.data
+  const createSession = async (endpoint, data) => {
+    const session = await axios.post(endpoint, data)
+    console.log(session)
+    return session.data
   }
 
 
