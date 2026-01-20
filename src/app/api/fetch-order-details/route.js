@@ -30,7 +30,7 @@ export async function POST(request) {
 
     const api = axios.create({
       baseURL: `${WOOCOMMERCE_URL}/wp-json/wc/v3`,
-      timeout: 10000,
+      // timeout: 10000,
       headers: {
         "Content-Type": "application/json",
       },
